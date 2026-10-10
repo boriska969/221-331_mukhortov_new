@@ -1,0 +1,56 @@
+import base64
+import hashlib
+import struct
+import sys
+from pathlib import Path
+
+MARKER = b"LR1TEXTHASH:"
+HASH_LENGTH = 44
+
+
+def find_text_section(data: bytearray):
+    e_lfanew = struct.unpack_from("<I", data, 0x3C)[0]
+    if data[e_lfanew:e_lfanew + 4] != b"PE\0\0":
+        raise SystemExit("not a PE image")
+    number_of_sections = struct.unpack_from("<H", data, e_lfanew + 6)[0]
+    optional_header_size = struct.unpack_from("<H", data, e_lfanew + 20)[0]
+    section_table = e_lfanew + 24 + optional_header_size
+    for index in range(number_of_sections):
+        offset = section_table + index * 40
+        name = bytes(data[offset:offset + 8])
+        if name == b".text\0\0\0":
+            virtual_size, _virtual_address, _raw_size, raw_pointer = struct.unpack_from(
+                "<IIII", data, offset + 8)
+            return virtual_size, raw_pointer
+    raise SystemExit(".text section not found")
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        print("usage: patch_text_hash.py <exe>")
+        return 2
+    exe_path = Path(sys.argv[1])
+    data = bytearray(exe_path.read_bytes())
+
+    virtual_size, raw_pointer = find_text_section(data)
+    text_bytes = bytes(data[raw_pointer:raw_pointer + virtual_size])
+    if len(text_bytes) < virtual_size:
+        text_bytes += b"\0" * (virtual_size - len(text_bytes))
+    digest = hashlib.sha256(text_bytes).digest()
+    digest_b64 = base64.b64encode(digest)
+    if len(digest_b64) != HASH_LENGTH:
+        raise SystemExit(f"unexpected base64 length: {len(digest_b64)}")
+
+    position = data.find(MARKER)
+    if position < 0 or data.find(MARKER, position + 1) >= 0:
+        raise SystemExit("reference marker must occur exactly once")
+    start = position + len(MARKER)
+    data[start:start + HASH_LENGTH] = digest_b64
+
+    exe_path.write_bytes(bytes(data))
+    print(f"patch_text_hash: .text size={virtual_size} sha256_b64={digest_b64.decode()}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

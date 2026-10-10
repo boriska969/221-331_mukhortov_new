@@ -74,6 +74,22 @@
     </ProjectReference>
   </ItemGroup>
 
+  <ItemDefinitionGroup>
+    <PostBuildEvent>
+      <Command>xcopy /y /d "$(SGXSDKInstallPath)bin\$(Platform)\Release\sgx_urts_simd.dll" "$(OutDir)"
+xcopy /y /d "$(SGXSDKInstallPath)bin\$(Platform)\Release\sgx_uae_service_sim.dll" "$(OutDir)"
+xcopy /y /d "$(SGXSDKInstallPath)bin\$(Platform)\Release\sgx_epid_sim.dll" "$(OutDir)"
+xcopy /y /d "$(SGXSDKInstallPath)bin\$(Platform)\Release\sgx_launch_sim.dll" "$(OutDir)"
+xcopy /y /d "$(SGXSDKInstallPath)bin\$(Platform)\Release\sgx_platform_sim.dll" "$(OutDir)"
+xcopy /y /d "$(SGXSDKInstallPath)bin\$(Platform)\Release\sgx_quote_ex_sim.dll" "$(OutDir)"
+xcopy /y /d "$(SGXSDKInstallPath)bin\$(Platform)\Release\sgx_dbghelp.dll" "$(OutDir)"
+xcopy /y /d "$(SGXSDKInstallPath)bin\$(Platform)\Release\sgx_capable.dll" "$(OutDir)"
+xcopy /y /d "$(SGXSDKInstallPath)bin\$(Platform)\Release\sgx_enclave_common.dll" "$(OutDir)"
+xcopy /y /d "$(SGXSDKInstallPath)bin\$(Platform)\Release\sgx_urtsd.dll" "$(OutDir)"</Command>
+      <Message>Copying SGX simulation runtime DLLs next to app.exe</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

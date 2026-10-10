@@ -1,3 +1,0 @@
-***CreateProcessW() success, pid = 17732
-***DebugActiveProcess() success
-***PassManager exited, exit code = 4294967295

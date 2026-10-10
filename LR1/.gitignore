@@ -1,1 +1,5 @@
-LR1_build1/
+build/
+build_*/
+.vs/
+*.user
+CMakeUserPresets.json
